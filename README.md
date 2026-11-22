@@ -13,6 +13,7 @@ scripts/dev.sh                # api on :8080, web on :5173   (or: make dev)
 make build                    # one binary in server/bin/app with the UI embedded
 
 make                          # lists the targets
+scripts/recipe-check.sh       # proves the delete-the-demo recipe below
 scripts/preflight.sh          # the gate: vet, tests -race, lint, build, deps, embedded-binary smoke, ports
 scripts/preflight.sh --ci     # same gate as CI: installs deps, skips port checks
 ```

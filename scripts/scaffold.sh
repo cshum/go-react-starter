@@ -75,6 +75,9 @@ cp "$KIT/.mise.toml" "$TARGET/.mise.toml"
 mkdir -p "$TARGET/.vscode" && cp "$KIT/.vscode/settings.json" "$TARGET/.vscode/settings.json"
 mkdir -p "$TARGET/.github/workflows" && cp "$KIT/.github/workflows/ci.yml" "$TARGET/.github/workflows/ci.yml"
 
+# the checker builds a repo from this one; it means nothing once copied
+rm -f "$TARGET/scripts/recipe-check.sh"
+
 trim_for_go_only() {
   python3 - "$TARGET/AGENTS.md" "$TARGET/.go-rules.md" <<'PY' || exit 1
 import sys

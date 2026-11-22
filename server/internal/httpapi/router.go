@@ -1,4 +1,4 @@
-// Package httpapi exposes the asset API over net/http.
+// Package httpapi exposes the HTTP API over net/http.
 package httpapi
 
 import (

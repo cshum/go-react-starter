@@ -1,4 +1,4 @@
-// Command app serves the asset API and reports the build version.
+// Command app serves the HTTP API and reports the build version.
 package main
 
 import (
@@ -11,9 +11,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"go.uber.org/zap"
-	"time"
 
 	server "starter"
 	"starter/internal/asset"

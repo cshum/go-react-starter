@@ -15,8 +15,8 @@ import (
 	"testing"
 
 	"go.uber.org/zap"
-	"starter/internal/asset"
 
+	"starter/internal/asset"
 	"starter/internal/httpapi"
 )
 

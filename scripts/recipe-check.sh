@@ -2,9 +2,10 @@
 # Executes exactly the steps in README "The demo resource is disposable" on a fresh scaffold.
 set -euo pipefail
 
-TARGET="${1:-$HOME/Developer/recipe-check}"
+TARGET="${1:-$(mktemp -d)/recipe-check}"
+HERE="$(cd "$(dirname "$0")" && pwd)"
 rm -rf "$TARGET"
-newrepo "$(basename "$TARGET")" >/dev/null
+"$HERE/scaffold.sh" "$TARGET" >/dev/null
 cd "$TARGET"
 
 # --- Delete
@@ -42,11 +43,11 @@ p.write_text(s)
 PY
 
 # --- Edit 2: main.go, drop the asset import and the store argument
-sed -i '' '/internal\/asset/d' server/cmd/app/main.go
-sed -i '' 's|httpapi.New(asset.NewMemStore(), log, server.UI())|httpapi.New(log, server.UI())|' server/cmd/app/main.go
+perl -ni -e 'print unless /internal\/asset/' server/cmd/app/main.go
+perl -pi -e 's|httpapi.New\(asset.NewMemStore\(\), log, server.UI\(\)\)|httpapi.New(log, server.UI())|' server/cmd/app/main.go
 
 # --- Edit 3: Dockerfile, drop the demo fixture copy
-sed -i '' '/COPY testdata \/app\/testdata/d' Dockerfile
+perl -ni -e 'print unless m{COPY testdata /app/testdata}' Dockerfile
 
 # --- Edit 4: web/src/router.tsx, drop the two routes
 python3 - <<'PY'

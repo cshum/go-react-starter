@@ -31,4 +31,7 @@ jobs:
 
       # the README claims the demo can be deleted without touching scripts/; prove it every push
       - name: recipe in the README still holds
-        run: ./scripts/recipe-check.sh "$RUNNER_TEMP/recipe" 2>&1 | tee /tmp/recipe.log
+        run: |
+          set -euo pipefail
+          ./scripts/recipe-check.sh "$RUNNER_TEMP/recipe"
+
