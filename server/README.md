@@ -7,7 +7,7 @@ runs with `GOPROXY=off` and an empty module cache.
 
 ```sh
 make run     # go run ./cmd/app serve   (-addr, else APP_ADDR, else PORT, else :8080)
-make build   # go build -o bin/app ./cmd/app
+make build   # npm build into dist/, then go build -tags embedui -o bin/app ./cmd/app
 make test    # go test -race ./...
 make lint    # golangci-lint run ./...
 make vet

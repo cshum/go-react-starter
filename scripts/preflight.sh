@@ -2,6 +2,7 @@
 # Proves the repo builds, tests and lints with no network.
 # Run: scripts/preflight.sh          (full)
 #      scripts/preflight.sh --fast   (skip the web build, keep tests)
+#      scripts/preflight.sh --ci     (no port checks; this is what CI runs)
 set -uo pipefail
 
 # resolve symlinks so this works when linked into PATH
@@ -70,7 +71,7 @@ if [ -f "$ROOT/${GO_DIR:+$GO_DIR/}go.mod" ]; then
   ) || fail=1
   [ $fail -eq 0 ] && ok "go module is offline-clean"
 else
-  bad "missing $ROOT/go"
+  bad "missing $(go env GOMOD 2>/dev/null || echo "$ROOT/go.mod")"
 fi
 
 step "web: node_modules present, tests pass"

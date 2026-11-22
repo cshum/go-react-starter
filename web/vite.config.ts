@@ -22,5 +22,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // a repo that has just deleted the demo has no tests yet; that is not a failure
+    passWithNoTests: true,
   },
 })

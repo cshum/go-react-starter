@@ -60,11 +60,33 @@ Each row is a choice, the reason, and what it costs.
 
 ## The demo resource is disposable
 
-`internal/asset`, `testdata/asset.json` and the three `/api/assets` routes are a worked example of
-the seam, not the point of the repo. Delete them and the gate still passes: the smoke step asserts
-`/healthz`, the SPA fallback and a JSON 404 under `/api/`, so nothing in `scripts/` names a
-resource. `newrepo` will always generate the demo, because it copies this template — that is what a
-generator does, not a resurrection of code you removed from an existing repo.
+The `assets` resource is a worked example of the seam, not the point of the repo. Verified end to
+end: delete the files below, edit the two files that name them, and `scripts/preflight.sh` passes in
+the full shape without one line changed in `scripts/`.
+
+**Delete**
+
+```
+server/internal/asset/                        type, store, tests
+server/internal/httpapi/store.go              the consumer interface
+server/internal/httpapi/handlers.go + _test.go
+server/testdata/asset.json                    shared fixture
+web/src/api/client.ts + client.test.ts
+web/src/components/asset-list.tsx + test
+web/src/routes/assets.tsx, asset-detail.tsx
+```
+
+**Edit**
+
+- `web/src/router.tsx` — the route tree is declared in code, not generated from the filesystem:
+  drop the two imports and their entries in `addChildren`.
+- `web/src/routes/root.tsx` — the header's `<Link to='/'>` stops type-checking once there are no
+  child routes. Drop it or point it at a route you keep.
+
+The smoke step survives this because it asserts `/healthz`, the SPA fallback and a JSON 404 under
+`/api/` — it names no resource. The Dockerfile is untouched: it copies `web/`, not the demo.
+`newrepo` always generates the demo, because it copies this template; that is what a generator
+does, not a resurrection of code you removed from an existing repo.
 
 ## What this deliberately leaves out
 
@@ -92,5 +114,5 @@ Optionally, put the generator on your `PATH` so it works from any directory:
 ```sh
 ln -sf "$(pwd)/scripts/scaffold.sh" ~/.local/bin/newrepo
 newrepo my-service          # server/ + web/
-newrepo my-service --go-only  # Go module at the repo root, single-stage Dockerfile, its own README
+newrepo my-service --go-only  # Go module at the repo root, two-stage Dockerfile, its own README
 ```
