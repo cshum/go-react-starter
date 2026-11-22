@@ -82,6 +82,7 @@ web/src/routes/assets.tsx, asset-detail.tsx
 `server/internal/httpapi/router.go`: replace `New` with
 
 ```go
+// New returns a ready handler: routes, logging, panic recovery.
 func New(log *zap.Logger, ui http.Handler) http.Handler {
 	a := &api{log: log}
 

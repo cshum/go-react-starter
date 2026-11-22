@@ -75,8 +75,10 @@ cp "$KIT/.mise.toml" "$TARGET/.mise.toml"
 mkdir -p "$TARGET/.vscode" && cp "$KIT/.vscode/settings.json" "$TARGET/.vscode/settings.json"
 mkdir -p "$TARGET/.github/workflows" && cp "$KIT/.github/workflows/ci.yml" "$TARGET/.github/workflows/ci.yml"
 
-# the checker builds a repo from this one; it means nothing once copied
+# the checker builds a repo from this one; it means nothing once copied, so remove it and every
+# line of README that mentions it
 rm -f "$TARGET/scripts/recipe-check.sh"
+perl -ni -e 'print unless m{recipe-check}' "$TARGET/README.md"
 
 trim_for_go_only() {
   python3 - "$TARGET/AGENTS.md" "$TARGET/.go-rules.md" <<'PY' || exit 1

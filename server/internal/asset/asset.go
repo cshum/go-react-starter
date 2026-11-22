@@ -1,3 +1,4 @@
+// Package asset is the demo domain: one type, the errors it returns, and a store.
 package asset
 
 import (
