@@ -96,7 +96,65 @@ open(agents, "w").write(s)
 PY
   rm -f "$TARGET/scripts/dev.sh" "$TARGET/.go-rules.md"
 }
+write_go_only_docs() {
+  cat > "$TARGET/Dockerfile" <<'EOF'
+FROM golang:1.27-alpine AS build
+WORKDIR /src
+COPY . .
+RUN CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=docker" -o /out/app ./cmd/app
+
+FROM gcr.io/distroless/static-debian12
+COPY --from=build /out/app /app
+USER nonroot:nonroot
+EXPOSE 8080
+ENTRYPOINT ["/app", "serve"]
+EOF
+
+  cat > "$TARGET/README.md" <<'EOF'
+# __NAME__
+
+A small Go HTTP service: one binary, stdlib routing, vendored dependencies, tests and lint behind
+one script.
+
+## Quick start
+
+```sh
+mise install                  # go and golangci-lint from .mise.toml
+make run                      # serve on :8080 (flag, APP_ADDR, or PORT)
+make test                     # go test -race ./...
+make lint                     # golangci-lint
+scripts/preflight.sh          # the gate CI runs: tests, lint, build, deps, ports
+```
+
+## Layout
+
+```
+cmd/app          flags and lifecycle
+internal/asset   the domain type, its store and the errors it returns
+internal/httpapi HTTP translation: routes, handlers, middleware, JSON helpers
+internal/config  flag and env parsing
+```
+
+Rules live next to the code in `AGENTS.md`.
+
+## Decisions
+
+- stdlib `net/http` with method+path patterns, no router
+- `ff` for flags and env, `zap` for logging, both vendored so `GOPROXY=off` builds
+- interfaces declared by the consumer: `httpapi` owns the `Store` it needs
+- in-memory store by default; a new implementation is a subpackage
+- tests run under `-race`; the same gate runs in CI
+
+## Deliberately absent
+
+Authentication, persistence and migrations, background jobs, tracing, deploy configuration,
+pagination, CORS and rate limiting. Each depends on where the service runs.
+EOF
+
+  perl -pi -e "s|__NAME__|$NAME|g" "$TARGET/README.md"
+}
 [ "$GO_ONLY" -eq 1 ] && trim_for_go_only
+[ "$GO_ONLY" -eq 1 ] && write_go_only_docs
 
 # name the project in the generated guidance, so a blank session knows what it is looking at
 perl -0pi -e "s|# Working in this repo\n|# Working in this repo\n\nProject: \`$NAME\`. Keep it small; extend what is here.\n|" "$TARGET/AGENTS.md"

@@ -104,6 +104,7 @@ if [ -f "$ROOT/${GO_DIR:+$GO_DIR/}dist/index.html" ]; then
   BIN="$ROOT/.run/app-smoke"
   ( cd "$ROOT/${GO_DIR:-.}" && $MISE_CMD go build -tags embedui -o "$BIN" ./cmd/app ) || bad "embedui build"
   SMOKE_PORT=18199
+  while lsof -nP -iTCP:"$SMOKE_PORT" -sTCP:LISTEN >/dev/null 2>&1; do SMOKE_PORT=$((SMOKE_PORT + 1)); done
   "$BIN" serve -addr ":$SMOKE_PORT" >"$ROOT/.run/smoke.log" 2>&1 &
   SMOKE_PID=$!
   for _ in $(seq 1 40); do

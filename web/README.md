@@ -1,7 +1,7 @@
 # web
 
 React 19 + TypeScript + TanStack Router (code-based routes), Vite, Tailwind 4.
-Boilerplate, not a product: two routes, one fetch client, one formatter, two tests.
+Boilerplate, not a product: two routes, one fetch client, one formatter, three test files.
 
 ## Run
 

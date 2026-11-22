@@ -12,7 +12,7 @@ help: ## Show the available targets
 dev: ## api + web, one command
 	@scripts/dev.sh
 
-check: ## the gate: vet, tests -race, lint, build, conventions, ports
+check: ## the gate: vet, tests -race, lint, build, deps, smoke, ports
 	@scripts/preflight.sh
 
 test: ## tests and lint only (no vite build)

@@ -288,3 +288,24 @@ func TestStoreFailureMapsTo500(t *testing.T) {
 		t.Fatalf("status = %d, want 500", resp.StatusCode)
 	}
 }
+
+func TestFilenameIsBaseName(t *testing.T) {
+	base := newServer(t)
+	resp, got := upload(t, base, "file", "../../etc/passwd", "payload")
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatalf("status = %d, want 201", resp.StatusCode)
+	}
+	if got.Filename != "passwd" {
+		t.Errorf("filename = %q, want %q", got.Filename, "passwd")
+	}
+}
+
+// A multipart part without a filename attribute arrives as a form field, not a file, so this
+// exercises the missing-part branch rather than the (defensive) empty-filename check.
+func TestMissingFilePartRejected(t *testing.T) {
+	base := newServer(t)
+	resp, _ := upload(t, base, "file", "", "payload")
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400", resp.StatusCode)
+	}
+}

@@ -91,6 +91,7 @@ func serve(args []string) error {
 	}
 
 	log := newLogger(*debug)
+	zap.ReplaceGlobals(log) // zap.L() is a no-op until the global is set
 	defer func() { _ = log.Sync() }()
 	srv := &http.Server{
 		Addr:              config.ListenAddr(*addr),

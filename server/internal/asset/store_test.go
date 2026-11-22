@@ -174,3 +174,28 @@ func TestMemStoreConcurrent(t *testing.T) {
 		}
 	})
 }
+
+func TestCreateIsIdempotentOnContent(t *testing.T) {
+	store := NewMemStore()
+	ctx := context.Background()
+
+	first, err := store.Create(ctx, "a.txt", []byte("same bytes"))
+	if err != nil {
+		t.Fatalf("first create: %v", err)
+	}
+	second, err := store.Create(ctx, "b.txt", []byte("same bytes"))
+	if !errors.Is(err, ErrDuplicate) {
+		t.Fatalf("second create err = %v, want ErrDuplicate", err)
+	}
+	if second.ID != first.ID {
+		t.Errorf("duplicate returned id %q, want %q", second.ID, first.ID)
+	}
+
+	list, err := store.List(ctx)
+	if err != nil {
+		t.Fatalf("list: %v", err)
+	}
+	if len(list) != 1 {
+		t.Errorf("store holds %d assets, want 1 — a duplicate must not add a record", len(list))
+	}
+}
