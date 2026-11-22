@@ -34,7 +34,11 @@ cleanup() {
   wait 2>/dev/null
   printf '\nstopped\n'
 }
-trap cleanup INT TERM EXIT
+# Ctrl-C is a requested stop, not a failure: report success so `make dev` does not print
+# "Error 130" over the top of the shutdown. A real failure still exits non-zero below.
+on_signal() { cleanup; exit 0; }
+trap on_signal INT TERM
+trap cleanup EXIT
 
 # Build first: the PID we kill is then the server itself, not a `go run` wrapper that leaves its
 # child holding the port.
