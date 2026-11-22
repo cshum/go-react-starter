@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"interviewkit/internal/asset"
+	"starter/internal/asset"
 )
 
 // New returns a ready handler for store: routes, logging, panic recovery.

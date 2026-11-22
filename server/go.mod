@@ -1,4 +1,4 @@
-module interviewkit
+module starter
 
 go 1.25
 

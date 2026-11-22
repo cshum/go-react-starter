@@ -13,8 +13,8 @@ import (
 	"strings"
 	"testing"
 
-	"interviewkit/internal/asset"
-	"interviewkit/internal/httpapi"
+	"starter/internal/asset"
+	"starter/internal/httpapi"
 )
 
 func newServer(t *testing.T) string {

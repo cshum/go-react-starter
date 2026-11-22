@@ -95,9 +95,9 @@ perl -0pi -e "s|# Working in this repo\n|# Working in this repo\n\nExercise: \`$
 perl -pi -e "if ($. == 1) { s|^# .*|# $NAME| }" "$TARGET/README.md"
 
 # module path and package name follow the directory, so imports read naturally in the round
-perl -pi -e "s|^module interviewkit|module $NAME|" "$GO_PATH/go.mod"
-grep -rl '"interviewkit/' "$GO_PATH" 2>/dev/null | while read -r f; do
-  perl -pi -e "s|\"interviewkit/|\"$NAME/|g" "$f"
+perl -pi -e "s|^module starter|module $NAME|" "$GO_PATH/go.mod"
+grep -rl '"starter/' "$GO_PATH" 2>/dev/null | while read -r f; do
+  perl -pi -e "s|\"starter/|\"$NAME/|g" "$f"
 done
 if [ "$GO_ONLY" -eq 0 ] && [ -f "$TARGET/web/package.json" ]; then
   perl -pi -e "s|\"name\": \"[^\"]+\"|\"name\": \"$NAME-web\"|" "$TARGET/web/package.json"

@@ -14,9 +14,9 @@ import (
 	"syscall"
 	"time"
 
-	"interviewkit/internal/asset"
-	"interviewkit/internal/config"
-	"interviewkit/internal/httpapi"
+	"starter/internal/asset"
+	"starter/internal/config"
+	"starter/internal/httpapi"
 )
 
 const version = "0.1.0"

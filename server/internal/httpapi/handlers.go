@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"interviewkit/internal/asset"
+	"starter/internal/asset"
 )
 
 const maxUpload = 8 << 20
