@@ -34,8 +34,7 @@ cleanup() {
   wait 2>/dev/null
   printf '\nstopped\n'
 }
-# Ctrl-C is a requested stop, not a failure: report success so `make dev` does not print
-# "Error 130" over the top of the shutdown. A real failure still exits non-zero below.
+# Ctrl-C is a requested stop, not a failure; real failures below still exit non-zero.
 on_signal() { cleanup; exit 0; }
 trap on_signal INT TERM
 trap cleanup EXIT
