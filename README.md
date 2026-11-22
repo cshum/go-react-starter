@@ -61,58 +61,25 @@ Each row is a choice, the reason, and what it costs.
 
 ## The demo resource is disposable
 
-The `assets` resource is a worked example of the seam, not the point of the repo. The recipe below
-was executed on a fresh scaffold of the default shape and `scripts/preflight.sh` passed without a
-line changed in `scripts/`.
+`internal/asset` is a worked example of the seam — the consumer-side `Store`, the shared fixture,
+the handler and its tests, one loader and one route — not the point of the repo. Any real project
+replaces it immediately, and nothing else should have to change.
 
-**Delete**
-
-```
-server/internal/asset/                        type, store, tests
-server/internal/httpapi/store.go              the consumer interface
-server/internal/httpapi/handlers.go + _test.go
-testdata/asset.json                           shared fixture (repo root; drop the dir)
-web/src/api/client.ts + client.test.ts
-web/src/components/asset-list.tsx + test
-web/src/routes/assets.tsx, asset-detail.tsx
+```sh
+scripts/strip-demo.sh        # in this repo, or in any repo generated from it
 ```
 
-**Edit — five files, each mechanical**
+One command, and the gate still passes: the script deletes the resource, rewrites `New` to keep
+only `/healthz` and the JSON 404 under `/api/`, drops the store from `main.go`, removes the
+`Dockerfile` line that copied the fixture, empties the route table in `web/src/router.tsx` and
+replaces the header link in `root.tsx`. It exits non-zero if a step finds nothing to change, so a
+silent no-op cannot pass as success.
 
-`server/internal/httpapi/router.go`: replace `New` with
+**No file under `scripts/` needs editing** — not `preflight.sh`, not `dev.sh`. The smoke step
+asserts `/healthz`, the SPA fallback and a JSON 404 under `/api/`; it names no resource.
 
-```go
-// New returns a ready handler: routes, logging, panic recovery.
-func New(log *zap.Logger, ui http.Handler) http.Handler {
-	a := &api{log: log}
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /healthz", a.health)
-	mux.HandleFunc("/api/", a.notFound)
-	if ui != nil {
-		mux.Handle("/", ui)
-	} else {
-		mux.HandleFunc("/", a.notFound)
-	}
-
-	return withLogging(log, withRecover(log, mux))
-}
-```
-
-`server/cmd/app/main.go`: drop the `internal/asset` import and pass no store —
-`httpapi.New(log, server.UI())`.
-
-`Dockerfile`: drop `COPY testdata /app/testdata` (the fixture only existed for the demo's test).
-
-`web/src/router.tsx`: remove the two route imports and their entries in `addChildren`.
-
-`web/src/routes/root.tsx`: replace the header's `<Link to='/'>Assets</Link>` with a `<span>`, and
-drop `Link` from the `@tanstack/react-router` import. With no child routes the link no longer
-type-checks, and `noUnusedLocals` fails the build on the leftover import.
-
-The smoke step survives all of this because it asserts `/healthz`, the SPA fallback and a JSON 404
-under `/api/`; it names no resource. `newrepo` always generates the demo, because it copies this
-template — that is what a generator does, not a resurrection of code you removed from a repo.
+`newrepo` always generates the demo, because it copies this template. That is what a generator
+does, not a resurrection of code you removed from an existing repo.
 
 ## What this deliberately leaves out
 
