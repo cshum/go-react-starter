@@ -1,0 +1,12 @@
+[tools]
+go = "1.27.4"
+golangci-lint = "2.15.0"
+node = "26.8.1"
+
+[tasks.test]
+description = "Tests, lint and build, whichever halves exist"
+run = "scripts/preflight.sh --fast"
+
+[tasks.check]
+description = "Full pre-flight: toolchain, offline build, lint, ports"
+run = "scripts/preflight.sh"

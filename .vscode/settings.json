@@ -1,0 +1,7 @@
+{
+  "chat.useAgentsMdFile": true,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "go.testFlags": ["-count=1"],
+  "files.trimTrailingWhitespace": true
+}
