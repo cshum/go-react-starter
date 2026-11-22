@@ -1,6 +1,6 @@
 # server
 
-Asset API in Go. Standard library plus `ff` for flag/env parsing, vendored — `go test ./...`
+Asset API in Go. Standard library plus `ff` (flags/env) and `zap` (logging), vendored — `go test ./...`
 runs with `GOPROXY=off` and an empty module cache.
 
 ## Commands

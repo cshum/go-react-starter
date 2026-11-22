@@ -34,6 +34,10 @@ func defaultAddr() string {
 }
 
 func main() {
+	// installed first so a flag-parse failure still has somewhere to report to
+	zap.ReplaceGlobals(newLogger(false))
+	defer func() { _ = zap.L().Sync() }()
+
 	if len(os.Args) < 2 {
 		usage()
 		os.Exit(2)
@@ -90,9 +94,10 @@ func serve(args []string) error {
 		return err
 	}
 
-	log := newLogger(*debug)
-	zap.ReplaceGlobals(log) // zap.L() is a no-op until the global is set
-	defer func() { _ = log.Sync() }()
+	if *debug {
+		zap.ReplaceGlobals(newLogger(true))
+	}
+	log := zap.L()
 	srv := &http.Server{
 		Addr:              config.ListenAddr(*addr),
 		Handler:           httpapi.New(asset.NewMemStore(), log, server.UI()),

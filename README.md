@@ -17,8 +17,8 @@ scripts/preflight.sh          # the gate: vet, tests -race, lint, build, deps, e
 scripts/preflight.sh --ci     # same gate as CI: installs deps, skips port checks
 ```
 
-CI runs exactly that (`--ci`) on push and pull request, plus a `template` job that scaffolds both
-repo shapes and runs the gate on each.
+CI runs exactly that (`--ci`) on push and pull request. This repo also has a second workflow,
+`template.yml`, that scaffolds both repo shapes and gates them; generated repos get `ci.yml` only.
 
 ## Layout
 
@@ -37,7 +37,7 @@ Each row is a choice, the reason, and what it costs.
 | Choice | Why | Cost |
 |---|---|---|
 | **Go stdlib `net/http`**, no router library | Go 1.22 method+path patterns (`POST /api/assets`, `GET /api/assets/{id}`) cover what this needs; one less dependency to explain and vendor | No middleware chain or param binding sugar — you write it |
-| **`ff/v3` for flags and env**, vendored | One declaration per option; flag beats env beats default | Two vendored dependencies (ff, zap), 540 KB; a `go.sum` exists |
+| **`ff/v3` for flags and env**, vendored | One declaration per option; flag beats env beats default | Three vendored modules (ff, zap, zap's multierr), 540 KB; a `go.sum` exists |
 | **Domain logic behind an interface** | `internal/asset` is plain Go, so it tests without a server or a database | You write the storage layer when `MemStore` stops being enough |
 | **In-memory store by default** | Swapping in Postgres means one new implementation, not a handler rewrite | No persistence, no migrations — deliberate for a starting point |
 | **SHA-256 content addressing** | Re-uploading identical bytes returns the stored asset, so `POST` is idempotent on content with no extra key | Storing one file under two names is impossible by design |
@@ -48,13 +48,13 @@ Each row is a choice, the reason, and what it costs.
 | **Vite + Tailwind 4** | Fast dev server, one plugin line, no config file to maintain | Utility classes in JSX |
 | **Vitest + Testing Library** | Same runner as Vite, so tests need no separate build config | Not Jest; some ecosystem answers assume Jest |
 | **ESLint 9 flat config + Prettier** | Formatting is a lint error, so CI cannot pass on unformatted code | The two tools must agree — `eslint-plugin-prettier` makes them one gate |
-| **TypeScript pinned to 6.0.3** | `typescript-eslint@8` supports `<6.1.0`; TS 7 is released but the lint toolchain is not there yet | Revisit when `typescript-eslint` ships TS 7 support |
+| **TypeScript held to 6.x** | `typescript-eslint@8` supports `<6.1.0`; TS 7 is released but the lint toolchain is not there yet. `package.json` carries `^6.0.3`, the lockfile the exact version | Revisit when `typescript-eslint` ships TS 7 support |
 | **`mise` for the toolchain** | Go, Node and golangci-lint versions live in the repo, so local and CI cannot drift | One tool to install on a new machine |
 | **`golangci-lint` standard set** | Defaults (errcheck, govet, staticcheck, unused, ineffassign) catch real defects without a config debate | Style opinions beyond that are yours to add |
 | **`vendor/` committed** | `go test` runs with `GOPROXY=off` and an empty module cache: no install step, in CI or on a plane | Vendor diffs show up in pull requests |
 | **One gate script, used by CI** | A green local run and a green build mean the same thing; there is no second definition of "passing" | The gate has to stay fast enough to run on every change |
 | **No codegen** (no gqlgen, no OpenAPI) | At this size, hand-written types are faster to read and change than a generator pair | Add the generator when the surface justifies it |
-| **One binary serves the API and the UI** | `web/dist` is embedded with `go:embed`, so a deploy is a single file; `make build` builds the UI first | Rebuild the binary when only the UI changes |
+| **One binary serves the API and the UI** | Vite builds into `server/dist`, which `go:embed` reads behind `-tags embedui`, so a deploy is a single file; `make build` builds the UI first | Rebuild the binary when only the UI changes |
 | **Dockerfile, but no compose** | Every starter in this class ships a deploy contract: multi-stage build, distroless runtime, non-root | You maintain an image you may not deploy |
 | **`renovate.json`** | Actions tags, npm carets and the TypeScript pin all drift; a bot keeps them current | One more config file, and PRs to review |
 
