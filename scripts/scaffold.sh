@@ -61,6 +61,7 @@ else
   cp "$KIT/Makefile" "$TARGET/Makefile"
   GO_PATH="$TARGET/server"
 fi
+rm -rf "$TARGET/dist" "$TARGET/server/dist"   # build output, not source
 clone_tree "$KIT/scripts" "$TARGET/scripts"
 cp "$KIT/README.md" "$TARGET/README.md"
 cp "$KIT/LICENSE" "$KIT/.editorconfig" "$KIT/.gitignore" "$TARGET/"
@@ -106,6 +107,9 @@ perl -pi -e "s|^module starter|module $NAME|" "$GO_PATH/go.mod"
 grep -rl '"starter' "$GO_PATH" 2>/dev/null | while read -r f; do
   perl -pi -e "s|\"starter/|\"$NAME/|g; s|\"starter\"|\"$NAME\"|g" "$f"
 done
+# renaming the module changes import sort order, so let gofmt settle the tree
+if command -v gofmt >/dev/null 2>&1; then gofmt -w "$GO_PATH" >/dev/null 2>&1 || true; fi
+
 if [ "$GO_ONLY" -eq 0 ] && [ -f "$TARGET/web/package.json" ]; then
   perl -pi -e "s|\"name\": \"[^\"]+\"|\"name\": \"$NAME-web\"|" "$TARGET/web/package.json"
   [ -f "$TARGET/web/package-lock.json" ] && perl -pi -e "s|\"name\": \"web\"|\"name\": \"$NAME-web\"|g" "$TARGET/web/package-lock.json"

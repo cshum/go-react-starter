@@ -24,8 +24,12 @@ import (
 // version is set at build time: -ldflags "-X main.version=…".
 var version = "dev"
 
-// defaultAddr keeps a bare port working: APP_ADDR=9090 is normalised to ":9090".
+// defaultAddr honours PORT, which most PaaS runtimes set, then falls back to :8080.
+// APP_ADDR still wins: it is the flag's default only.
 func defaultAddr() string {
+	if p := os.Getenv("PORT"); p != "" {
+		return config.ListenAddr(p)
+	}
 	return ":8080"
 }
 

@@ -76,7 +76,7 @@ fi
 step "web: node_modules present, tests pass"
 if [ ! -d "$ROOT/web" ]; then
   ok "no web tree (go-only repo)"
-elif [ -d "$ROOT/web" ]; then
+else
   (
     cd "$ROOT/web" || exit 1
     if [ -d node_modules ]; then
@@ -96,11 +96,33 @@ elif [ -d "$ROOT/web" ]; then
     fi
     exit $fail
   ) || fail=1
-else
-  bad "missing $ROOT/web"
 fi
 
-step "conventions"
+step "single binary (UI embedded)"
+if [ -f "$ROOT/${GO_DIR:+$GO_DIR/}dist/index.html" ]; then
+  mkdir -p "$ROOT/.run"
+  BIN="$ROOT/.run/app-smoke"
+  ( cd "$ROOT/${GO_DIR:-.}" && $MISE_CMD go build -tags embedui -o "$BIN" ./cmd/app ) || bad "embedui build"
+  SMOKE_PORT=18199
+  "$BIN" serve -addr ":$SMOKE_PORT" >"$ROOT/.run/smoke.log" 2>&1 &
+  SMOKE_PID=$!
+  for _ in $(seq 1 40); do
+    curl -fsS --max-time 1 "http://localhost:$SMOKE_PORT/healthz" >/dev/null 2>&1 && break
+    sleep 0.25
+  done
+  ui=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:$SMOKE_PORT/")
+  deep=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:$SMOKE_PORT/assets/asset-1")
+  api=$(curl -s --max-time 2 "http://localhost:$SMOKE_PORT/api/assets")
+  nope=$(curl -s --max-time 2 "http://localhost:$SMOKE_PORT/api/nope")
+  kill "$SMOKE_PID" 2>/dev/null
+  wait "$SMOKE_PID" 2>/dev/null
+  if [ "$ui" = 200 ] && [ "$deep" = 200 ]; then ok "serves the UI and deep links"; else bad "UI $ui / deep link $deep"; fi
+  case "$api" in *'"assets"'*) ok "serves the API" ;; *) bad "API body: $api" ;; esac
+  case "$nope" in *'"error"'*) ok "unknown API path stays JSON" ;; *) bad "API 404 body: $nope" ;; esac
+else
+  ok "skipped — no web build to embed"
+fi
+
 step "ports the demo uses"
 if [ "$CI" -eq 1 ]; then
   ok "skipped in CI"

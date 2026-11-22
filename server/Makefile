@@ -18,7 +18,7 @@ run: ## serve on :8080 (or -addr / APP_ADDR)
 	$(GO) run ./cmd/app serve
 
 build: ## build bin/app; embeds web/dist when the front end is present
-	@if [ -d ../web ]; then npm --prefix ../web run build; fi
+	@if [ -d ../web ]; then npm --prefix ../web run build; else mkdir -p dist && touch dist/.keep; fi
 	$(GO) build -tags embedui -trimpath -ldflags "-X main.version=$(VERSION)" -o bin/app ./cmd/app
 
 test: ## go test -race ./...

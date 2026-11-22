@@ -8,7 +8,7 @@ import (
 	"github.com/peterbourgon/ff/v3"
 )
 
-// Parse reads flags, then environment variables named PREFIX_FLAG (ASSET_ADDR and so on).
+// Parse reads flags, then environment variables named PREFIX_FLAG (APP_ADDR and so on).
 // An explicit flag wins over the environment, which wins over the default.
 func Parse(fs *flag.FlagSet, args []string, prefix string) error {
 	return ff.Parse(fs, args, ff.WithEnvVarPrefix(prefix))
