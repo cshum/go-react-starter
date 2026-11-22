@@ -4,6 +4,7 @@
 #   newrepo rate-limiter            -> ~/Developer/rate-limiter with server/ + web/
 #   newrepo ~/some/where/thing      -> exactly there
 #   newrepo rate-limiter --go-only  -> Go module at the repo root, no web/ tree
+#   newrepo rate-limiter --blank    -> same, minus the demo resource
 #
 # The generated repo includes the demo resource from this template, by design: delete it in the new
 # repo and nothing in scripts/ breaks.
@@ -28,7 +29,11 @@ fi
 TARGET="${1:-}"
 shift || true
 GO_ONLY=0
-for a in "$@"; do [ "$a" = "--go-only" ] && GO_ONLY=1; done
+BLANK=0
+for a in "$@"; do
+  [ "$a" = "--go-only" ] && GO_ONLY=1
+  [ "$a" = "--blank" ] && BLANK=1
+done
 
 if [ -z "$TARGET" ]; then
   sed -n '2,8p' "$SELF" | sed 's/^# \{0,1\}//' >&2
@@ -188,6 +193,13 @@ if [ -d "$TARGET/web/node_modules" ]; then
   ./scripts/preflight.sh --fast || { echo "gate failed — not committing" >&2; exit 1; }
 else
   ./scripts/preflight.sh --ci || { echo "gate failed — not committing" >&2; exit 1; }
+fi
+
+if [ "$BLANK" -eq 1 ]; then
+  ./scripts/strip-demo.sh || { echo "strip failed" >&2; exit 1; }
+  ./scripts/preflight.sh --ci >/dev/null 2>&1 || ./scripts/preflight.sh --fast >/dev/null 2>&1 \
+    || { echo "gate failed after strip — not committing" >&2; exit 1; }
+  printf 'blank: no demo resource\n'
 fi
 
 git init -q

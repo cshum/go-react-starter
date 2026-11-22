@@ -24,9 +24,9 @@ CI runs exactly that (`--ci`) on push and pull request. This repo also has a sec
 ## Layout
 
 ```
-server/     Go: cmd/app (serve, version), internal/{asset,config,httpapi}, vendored ff + zap
+server/     Go: cmd/app (serve, version), internal/{<domain>,config,httpapi}, vendored ff + zap
 web/        React 19 + TypeScript + TanStack Router, code-based routes, data via loaders
-scripts/    preflight.sh (the gate), dev.sh (both servers), scaffold.sh (new repo from this one)
+scripts/    preflight.sh (the gate), dev.sh (both servers), scaffold.sh (new repo), strip-demo.sh
 ```
 
 Rules live next to the code: `server/AGENTS.md` and `web/AGENTS.md`.
@@ -37,11 +37,10 @@ Each row is a choice, the reason, and what it costs.
 
 | Choice | Why | Cost |
 |---|---|---|
-| **Go stdlib `net/http`**, no router library | Go 1.22 method+path patterns (`POST /api/assets`, `GET /api/assets/{id}`) cover what this needs; one less dependency to explain and vendor | No middleware chain or param binding sugar — you write it |
+| **Go stdlib `net/http`**, no router library | Go 1.22 method+path patterns (`POST /api/items`, `GET /api/items/{id}`) cover what this needs; one less dependency to explain and vendor | No middleware chain or param binding sugar — you write it |
 | **`ff/v3` for flags and env**, vendored | One declaration per option; flag beats env beats default | Three vendored modules (ff, zap, zap's multierr), 540 KB; a `go.sum` exists |
-| **Domain logic behind an interface** | `internal/asset` is plain Go, so it tests without a server or a database | You write the storage layer when `MemStore` stops being enough |
+| **Domain isolated behind a consumer-owned interface** | The domain package is plain Go, so it tests without a server or a database, and HTTP stays a thin translation | You write the storage layer when the in-memory one stops being enough |
 | **In-memory store by default** | Swapping in Postgres means one new implementation, not a handler rewrite | No persistence, no migrations — deliberate for a starting point |
-| **SHA-256 content addressing** | Re-uploading identical bytes returns the stored asset, so `POST` is idempotent on content with no extra key | Storing one file under two names is impossible by design |
 | **`zap` plus two middlewares** | Structured fields rather than printf; request logging and panic recovery are the only cross-cutting concerns that earn their place | One more vendored dependency, and `zap.ReplaceGlobals` so fatal errors actually print; `-debug` selects the development config |
 | **React 19 + TypeScript `strict`** | Strict mode catches the bug this template exists to prevent: shape drift between API and UI | More annotations at the boundary |
 | **TanStack Router, code-based routes** | Typed routes and `loader` functions mean data never enters through `useEffect`; routes are plain objects you can read | Smaller ecosystem than react-router; the loader pattern maps onto react-router v7's data routes |
@@ -65,8 +64,13 @@ Each row is a choice, the reason, and what it costs.
 the handler and its tests, one loader and one route — not the point of the repo. Any real project
 replaces it immediately, and nothing else should have to change.
 
+The demo stores bytes under their SHA-256, so re-uploading identical content returns the existing
+record instead of creating a second one: `POST` is idempotent on a key derived from the payload,
+with no separate idempotency key to invent. That behaviour leaves with the demo.
+
 ```sh
 scripts/strip-demo.sh        # in this repo, or in any repo generated from it
+newrepo my-service --blank   # scaffold with no demo at all
 ```
 
 One command, and the gate still passes: the script deletes the resource, rewrites `New` to keep
