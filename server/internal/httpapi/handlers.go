@@ -13,7 +13,9 @@ import (
 
 const maxUpload = 8 << 20
 
-type api struct {
+// assetHandlers is the demo resource. Its dependencies live here, not on the router, so
+// deleting this file leaves nothing behind in router.go.
+type assetHandlers struct {
 	store Store
 	log   *zap.Logger
 }
@@ -22,7 +24,7 @@ type listResponse struct {
 	Assets []asset.Asset `json:"assets"`
 }
 
-func (a *api) create(w http.ResponseWriter, r *http.Request) {
+func (a *assetHandlers) create(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxUpload)
 	if err := r.ParseMultipartForm(1 << 20); err != nil {
 		var tooBig *http.MaxBytesError
@@ -61,7 +63,7 @@ func (a *api) create(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a *api) list(w http.ResponseWriter, r *http.Request) {
+func (a *assetHandlers) list(w http.ResponseWriter, r *http.Request) {
 	docs, err := a.store.List(r.Context())
 	if err != nil {
 		a.log.Error("list", zap.Error(err))
@@ -74,7 +76,7 @@ func (a *api) list(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, listResponse{Assets: docs})
 }
 
-func (a *api) get(w http.ResponseWriter, r *http.Request) {
+func (a *assetHandlers) get(w http.ResponseWriter, r *http.Request) {
 	d, err := a.store.Get(r.Context(), r.PathValue("id"))
 	switch {
 	case errors.Is(err, asset.ErrNotFound):
@@ -85,12 +87,4 @@ func (a *api) get(w http.ResponseWriter, r *http.Request) {
 	default:
 		writeJSON(w, http.StatusOK, d)
 	}
-}
-
-func (a *api) health(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
-}
-
-func (a *api) notFound(w http.ResponseWriter, r *http.Request) {
-	writeError(w, http.StatusNotFound, "no such route")
 }

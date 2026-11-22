@@ -60,9 +60,9 @@ Each row is a choice, the reason, and what it costs.
 
 ## The demo resource is disposable
 
-The `assets` resource is a worked example of the seam, not the point of the repo. Verified end to
-end: delete the files below, edit the two files that name them, and `scripts/preflight.sh` passes in
-the full shape without one line changed in `scripts/`.
+The `assets` resource is a worked example of the seam, not the point of the repo. The recipe below
+was executed on a fresh scaffold of the default shape and `scripts/preflight.sh` passed without a
+line changed in `scripts/`.
 
 **Delete**
 
@@ -70,23 +70,46 @@ the full shape without one line changed in `scripts/`.
 server/internal/asset/                        type, store, tests
 server/internal/httpapi/store.go              the consumer interface
 server/internal/httpapi/handlers.go + _test.go
-server/testdata/asset.json                    shared fixture
+testdata/asset.json                           shared fixture (repo root; drop the dir)
 web/src/api/client.ts + client.test.ts
 web/src/components/asset-list.tsx + test
 web/src/routes/assets.tsx, asset-detail.tsx
 ```
 
-**Edit**
+**Edit — five files, each mechanical**
 
-- `web/src/router.tsx` — the route tree is declared in code, not generated from the filesystem:
-  drop the two imports and their entries in `addChildren`.
-- `web/src/routes/root.tsx` — the header's `<Link to='/'>` stops type-checking once there are no
-  child routes. Drop it or point it at a route you keep.
+`server/internal/httpapi/router.go`: replace `New` with
 
-The smoke step survives this because it asserts `/healthz`, the SPA fallback and a JSON 404 under
-`/api/` — it names no resource. The Dockerfile is untouched: it copies `web/`, not the demo.
-`newrepo` always generates the demo, because it copies this template; that is what a generator
-does, not a resurrection of code you removed from an existing repo.
+```go
+func New(log *zap.Logger, ui http.Handler) http.Handler {
+	a := &api{log: log}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /healthz", a.health)
+	mux.HandleFunc("/api/", a.notFound)
+	if ui != nil {
+		mux.Handle("/", ui)
+	} else {
+		mux.HandleFunc("/", a.notFound)
+	}
+
+	return withLogging(log, withRecover(log, mux))
+}
+```
+
+`server/cmd/app/main.go`: drop the `internal/asset` import and pass no store —
+`httpapi.New(log, server.UI())`.
+
+`Dockerfile`: drop `COPY testdata /app/testdata` (the fixture only existed for the demo's test).
+
+`web/src/router.tsx`: remove the two route imports and their entries in `addChildren`.
+
+`web/src/routes/root.tsx`: remove the header's `<Link to='/'>` — with no child routes it no longer
+type-checks.
+
+The smoke step survives all of this because it asserts `/healthz`, the SPA fallback and a JSON 404
+under `/api/`; it names no resource. `newrepo` always generates the demo, because it copies this
+template — that is what a generator does, not a resurrection of code you removed from a repo.
 
 ## What this deliberately leaves out
 

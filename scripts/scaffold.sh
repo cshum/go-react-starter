@@ -122,11 +122,11 @@ one script.
 ## Quick start
 
 ```sh
-mise install                  # go and golangci-lint from .mise.toml
+mise install                  # go, node and golangci-lint from .mise.toml
 make run                      # serve on :8080 (flag, APP_ADDR, or PORT)
 make test                     # go test -race ./...
 make lint                     # golangci-lint
-scripts/preflight.sh          # the gate: tests -race, lint, build, deps, ports (CI passes --ci)
+scripts/preflight.sh          # the gate: vet, tests -race, lint, build, ports (CI passes --ci)
 ```
 
 ## Layout
