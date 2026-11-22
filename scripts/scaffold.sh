@@ -58,6 +58,7 @@ if [ "$GO_ONLY" -eq 1 ]; then
 else
   clone_tree "$KIT/server" "$TARGET/server"
   clone_tree "$KIT/web" "$TARGET/web"
+  cp "$KIT/Makefile" "$TARGET/Makefile"
   GO_PATH="$TARGET/server"
 fi
 clone_tree "$KIT/scripts" "$TARGET/scripts"

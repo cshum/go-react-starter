@@ -9,8 +9,9 @@ reversible in an afternoon.
 ```sh
 mise install                  # go, node, golangci-lint from .mise.toml
 npm --prefix web install      # only when web/node_modules is missing
-scripts/dev.sh                # api on :8080, web on :5173
+scripts/dev.sh                # api on :8080, web on :5173   (or: make dev)
 
+make                          # lists the targets
 scripts/preflight.sh          # the gate: vet, tests (-race), lint, build, conventions, ports
 scripts/preflight.sh --ci     # same gate as CI: installs deps, skips port checks
 ```

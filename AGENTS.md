@@ -7,6 +7,7 @@ before adding to it, and prefer extending what is here over introducing a patter
 
 ```sh
 mise install                  # go + node pinned in .mise.toml; already installed on this machine
+make check | make test        # front door over the same scripts
 mise run test                 # both halves, offline
 scripts/preflight.sh          # proves the whole thing works with no network
 scripts/dev.sh                # api :8080 + web :5173 together
