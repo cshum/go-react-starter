@@ -24,8 +24,8 @@ Language rules live next to the code: `server/AGENTS.md` and `web/AGENTS.md`.
 
 - **Always**: run `mise run test` before saying a change is done; run `scripts/preflight.sh` before
   declaring a change finished; quote the command output rather than summarising it.
-- **Ask first**: adding any dependency, changing the JSON shape of an endpoint, deleting the
-  `assets` demo resource.
+- **Ask first**: adding any dependency, changing the JSON shape of an endpoint, deleting the demo
+  resource — the API in `server/` is a worked example, meant to be replaced.
 - **Never**: run `npm ci` or delete `node_modules` (offline install fails), commit secrets, or edit
   the versions in `.mise.toml`.
 

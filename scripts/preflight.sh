@@ -111,14 +111,16 @@ if [ -f "$ROOT/${GO_DIR:+$GO_DIR/}dist/index.html" ]; then
     curl -fsS --max-time 1 "http://localhost:$SMOKE_PORT/healthz" >/dev/null 2>&1 && break
     sleep 0.25
   done
+  health=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:$SMOKE_PORT/healthz")
   ui=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:$SMOKE_PORT/")
-  deep=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:$SMOKE_PORT/assets/asset-1")
-  api=$(curl -s --max-time 2 "http://localhost:$SMOKE_PORT/api/assets")
-  nope=$(curl -s --max-time 2 "http://localhost:$SMOKE_PORT/api/nope")
+  # any path that is not a real file must return index.html, whatever the app's routes are
+  deep=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:$SMOKE_PORT/some/deep/link")
+  # an unknown API path proves the /api prefix is mounted and stays JSON
+  nope=$(curl -s --max-time 2 "http://localhost:$SMOKE_PORT/api/does-not-exist")
   kill "$SMOKE_PID" 2>/dev/null
   wait "$SMOKE_PID" 2>/dev/null
+  if [ "$health" = 200 ]; then ok "answers /healthz"; else bad "/healthz returned $health"; fi
   if [ "$ui" = 200 ] && [ "$deep" = 200 ]; then ok "serves the UI and deep links"; else bad "UI $ui / deep link $deep"; fi
-  case "$api" in *'"assets"'*) ok "serves the API" ;; *) bad "API body: $api" ;; esac
   case "$nope" in *'"error"'*) ok "unknown API path stays JSON" ;; *) bad "API 404 body: $nope" ;; esac
 else
   ok "skipped — no web build to embed"

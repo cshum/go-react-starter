@@ -4,10 +4,10 @@ Layout: `cmd/app` wires flags and lifecycle; `internal/<domain>` owns data and b
 `internal/httpapi` translates HTTP to calls and errors to status codes; `internal/config` parses
 flags and env.
 
-- **Packages are named for what they provide, not the layer.** `internal/asset` holds `Asset` and
-  the operations on it: singular, lowercase, no plurals (`assets`), no drawers (`models`, `util`),
-  and no `store`/`db`/`datastore` — those describe a role and stutter against their own types. A
-  new implementation is a subpackage (`internal/asset/postgres`), not a renamed package.
+- **Packages are named for what they provide, not the layer.** `internal/<domain>` holds the type
+  and the operations on it: singular, lowercase, no plurals, no drawers (`models`, `util`), and no
+  `store`/`db`/`datastore` — those describe a role and stutter against their own types. A new
+  implementation is a subpackage (`internal/<domain>/postgres`), not a renamed package.
 - **Interfaces belong to the consumer.** `httpapi` declares the `Store` it needs; the domain
   package exports a concrete `MemStore` and no interface. Accept interfaces, return structs.
 - Dependencies stay few and are **vendored**: `go mod vendor` after any `go get`, so `vendor/`

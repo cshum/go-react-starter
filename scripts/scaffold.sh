@@ -5,6 +5,9 @@
 #   newrepo ~/some/where/thing      -> exactly there
 #   newrepo rate-limiter --go-only  -> Go module at the repo root, no web/ tree
 #
+# The generated repo includes the demo resource from this template, by design: delete it in the new
+# repo and nothing in scripts/ breaks.
+#
 # Copies with APFS clones (cp -c), so node_modules costs no time and no extra disk.
 set -uo pipefail
 

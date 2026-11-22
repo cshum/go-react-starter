@@ -58,6 +58,14 @@ Each row is a choice, the reason, and what it costs.
 | **Dockerfile, but no compose** | Every starter in this class ships a deploy contract: multi-stage build, distroless runtime, non-root | You maintain an image you may not deploy |
 | **`renovate.json`** | Actions tags, npm carets and the TypeScript pin all drift; a bot keeps them current | One more config file, and PRs to review |
 
+## The demo resource is disposable
+
+`internal/asset`, `testdata/asset.json` and the three `/api/assets` routes are a worked example of
+the seam, not the point of the repo. Delete them and the gate still passes: the smoke step asserts
+`/healthz`, the SPA fallback and a JSON 404 under `/api/`, so nothing in `scripts/` names a
+resource. `newrepo` will always generate the demo, because it copies this template — that is what a
+generator does, not a resurrection of code you removed from an existing repo.
+
 ## What this deliberately leaves out
 
 Authentication, persistence and migrations, background jobs, tracing, deploy configuration and a
