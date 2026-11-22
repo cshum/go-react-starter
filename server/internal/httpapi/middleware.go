@@ -1,9 +1,10 @@
 package httpapi
 
 import (
-	"log/slog"
 	"net/http"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // statusRecorder remembers the status code for the access log and whether the response started.
@@ -26,22 +27,22 @@ func (r *statusRecorder) Write(b []byte) (int, error) {
 	return r.ResponseWriter.Write(b)
 }
 
-func withLogging(log *slog.Logger, next http.Handler) http.Handler {
+func withLogging(log *zap.Logger, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		rec := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
 		next.ServeHTTP(rec, r)
 		log.Info("request",
-			"method", r.Method,
-			"path", r.URL.Path,
-			"status", rec.status,
-			"duration", time.Since(start).Round(time.Microsecond),
+			zap.String("method", r.Method),
+			zap.String("path", r.URL.Path),
+			zap.Int("status", rec.status),
+			zap.Duration("duration", time.Since(start).Round(time.Microsecond)),
 		)
 	})
 }
 
 // withRecover answers 500 instead of dropping the connection on a handler panic.
-func withRecover(log *slog.Logger, next http.Handler) http.Handler {
+func withRecover(log *zap.Logger, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			v := recover()
@@ -51,7 +52,7 @@ func withRecover(log *slog.Logger, next http.Handler) http.Handler {
 			if v == http.ErrAbortHandler {
 				panic(v)
 			}
-			log.Error("panic", "method", r.Method, "path", r.URL.Path, "value", v)
+			log.Error("panic", zap.String("method", r.Method), zap.String("path", r.URL.Path), zap.Any("value", v))
 			if rec, ok := w.(*statusRecorder); ok && rec.wrote {
 				return
 			}

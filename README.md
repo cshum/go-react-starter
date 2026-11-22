@@ -37,11 +37,11 @@ Each row is a choice, the reason, and what it costs.
 | Choice | Why | Cost |
 |---|---|---|
 | **Go stdlib `net/http`**, no router library | Go 1.22 method+path patterns (`POST /api/assets`, `GET /api/assets/{id}`) cover what this needs; one less dependency to explain and vendor | No middleware chain or param binding sugar — you write it |
-| **`ff/v3` for flags and env**, vendored | One declaration per option; flag beats env beats default | One dependency, 60 KB vendored; a `go.sum` exists |
+| **`ff/v3` for flags and env**, vendored | One declaration per option; flag beats env beats default | Two vendored dependencies (ff, zap), 540 KB; a `go.sum` exists |
 | **Domain logic behind an interface** | `internal/asset` is plain Go, so it tests without a server or a database | You write the storage layer when `MemStore` stops being enough |
 | **In-memory store by default** | Swapping in Postgres means one new implementation, not a handler rewrite | No persistence, no migrations — deliberate for a starting point |
 | **SHA-256 content addressing** | Re-uploading identical bytes returns the stored asset, so `POST` is idempotent on content with no extra key | Storing one file under two names is impossible by design |
-| **`log/slog` plus two middlewares** | Request logging and panic recovery are the only cross-cutting concerns that earn their place here | No tracing or metrics — add the SDK you actually use |
+| **`zap` plus two middlewares** | Same logger as my other Go services; request logging and panic recovery are the only cross-cutting concerns that earn their place | One more vendored dependency; `-debug` switches to the development config |
 | **React 19 + TypeScript `strict`** | Strict mode catches the bug this template exists to prevent: shape drift between API and UI | More annotations at the boundary |
 | **TanStack Router, code-based routes** | Typed routes and `loader` functions mean data never enters through `useEffect`; routes are plain objects you can read | Smaller ecosystem than react-router; the loader pattern maps onto react-router v7's data routes |
 | **Data via loaders; `useEffect` only for DOM sync** | Effects synchronise with things outside React — observers, listeners, timers — never with the API | One concept to unlearn if you have only fetched in effects |

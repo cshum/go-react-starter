@@ -7,11 +7,12 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"go.uber.org/zap"
 	"time"
 
 	server "starter"
@@ -48,9 +49,24 @@ func main() {
 		os.Exit(2)
 	}
 	if err != nil {
-		slog.Error("fatal", "err", err)
+		zap.L().Error("fatal", zap.Error(err))
 		os.Exit(1)
 	}
+}
+
+// newLogger picks the production or development config; development adds colour and DPanic.
+func newLogger(debug bool) *zap.Logger {
+	if debug {
+		l, err := zap.NewDevelopment()
+		if err == nil {
+			return l
+		}
+	}
+	l, err := zap.NewProduction()
+	if err != nil {
+		return zap.NewNop()
+	}
+	return l
 }
 
 func usage() {
@@ -65,11 +81,13 @@ commands:
 func serve(args []string) error {
 	fs := flag.NewFlagSet("serve", flag.ExitOnError)
 	addr := fs.String("addr", defaultAddr(), "listen address (env: APP_ADDR)")
+	debug := fs.Bool("debug", false, "development logging (env: APP_DEBUG)")
 	if err := config.Parse(fs, args, "APP"); err != nil {
 		return err
 	}
 
-	log := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	log := newLogger(*debug)
+	defer func() { _ = log.Sync() }()
 	srv := &http.Server{
 		Addr:              config.ListenAddr(*addr),
 		Handler:           httpapi.New(asset.NewMemStore(), log, server.UI()),
@@ -84,7 +102,7 @@ func serve(args []string) error {
 
 	errs := make(chan error, 1)
 	go func() {
-		log.Info("listening", "addr", srv.Addr)
+		log.Info("listening", zap.String("addr", srv.Addr))
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errs <- err
 		}

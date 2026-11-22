@@ -2,14 +2,13 @@
 package httpapi
 
 import (
-	"log/slog"
 	"net/http"
 
-	"starter/internal/asset"
+	"go.uber.org/zap"
 )
 
 // New returns a ready handler for store: routes, logging, panic recovery.
-func New(store asset.Store, log *slog.Logger, ui http.Handler) http.Handler {
+func New(store Store, log *zap.Logger, ui http.Handler) http.Handler {
 	a := &api{store: store, log: log}
 
 	mux := http.NewServeMux()

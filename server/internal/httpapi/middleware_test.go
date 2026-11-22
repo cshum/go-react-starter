@@ -1,14 +1,14 @@
 package httpapi
 
 import (
-	"io"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"go.uber.org/zap"
 )
 
-func newLogger() *slog.Logger { return slog.New(slog.NewTextHandler(io.Discard, nil)) }
+func newLogger() *zap.Logger { return zap.NewNop() }
 
 func TestRecoverAnswers500(t *testing.T) {
 	log := newLogger()

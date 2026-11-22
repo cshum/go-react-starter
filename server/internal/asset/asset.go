@@ -1,7 +1,6 @@
 package asset
 
 import (
-	"context"
 	"errors"
 	"time"
 )
@@ -18,12 +17,4 @@ type Asset struct {
 	SHA256    string    `json:"sha256"`
 	Size      int64     `json:"size"`
 	CreatedAt time.Time `json:"createdAt"`
-}
-
-// Create returns ErrDuplicate together with the existing asset when the
-// content hash is already stored.
-type Store interface {
-	Create(ctx context.Context, filename string, content []byte) (Asset, error)
-	Get(ctx context.Context, id string) (Asset, error)
-	List(ctx context.Context) ([]Asset, error)
 }

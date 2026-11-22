@@ -3,9 +3,10 @@ package httpapi
 import (
 	"errors"
 	"io"
-	"log/slog"
 	"net/http"
 	"path/filepath"
+
+	"go.uber.org/zap"
 
 	"starter/internal/asset"
 )
@@ -13,8 +14,8 @@ import (
 const maxUpload = 8 << 20
 
 type api struct {
-	store asset.Store
-	log   *slog.Logger
+	store Store
+	log   *zap.Logger
 }
 
 type listResponse struct {
@@ -53,7 +54,7 @@ func (a *api) create(w http.ResponseWriter, r *http.Request) {
 	case errors.Is(err, asset.ErrDuplicate):
 		writeJSON(w, http.StatusOK, d)
 	case err != nil:
-		a.log.Error("create", "err", err)
+		a.log.Error("create", zap.Error(err))
 		writeError(w, http.StatusInternalServerError, "create failed")
 	default:
 		writeJSON(w, http.StatusCreated, d)
@@ -63,7 +64,7 @@ func (a *api) create(w http.ResponseWriter, r *http.Request) {
 func (a *api) list(w http.ResponseWriter, r *http.Request) {
 	docs, err := a.store.List(r.Context())
 	if err != nil {
-		a.log.Error("list", "err", err)
+		a.log.Error("list", zap.Error(err))
 		writeError(w, http.StatusInternalServerError, "list failed")
 		return
 	}
@@ -79,7 +80,7 @@ func (a *api) get(w http.ResponseWriter, r *http.Request) {
 	case errors.Is(err, asset.ErrNotFound):
 		writeError(w, http.StatusNotFound, "asset not found")
 	case err != nil:
-		a.log.Error("get", "err", err)
+		a.log.Error("get", zap.Error(err))
 		writeError(w, http.StatusInternalServerError, "get failed")
 	default:
 		writeJSON(w, http.StatusOK, d)

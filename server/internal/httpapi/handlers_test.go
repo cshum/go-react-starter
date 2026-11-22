@@ -2,24 +2,27 @@ package httpapi_test
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"io"
-	"log/slog"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"go.uber.org/zap"
 	"starter/internal/asset"
+
 	"starter/internal/httpapi"
 )
 
 func newServer(t *testing.T) string {
 	t.Helper()
-	log := slog.New(slog.NewTextHandler(io.Discard, nil))
+	log := zap.NewNop()
 	srv := httptest.NewServer(httpapi.New(asset.NewMemStore(), log, nil))
 	t.Cleanup(srv.Close)
 	return srv.URL
@@ -252,5 +255,36 @@ func TestUploadTooLarge(t *testing.T) {
 	resp, _ := upload(t, base, "file", "big.bin", strings.Repeat("x", 9<<20))
 	if resp.StatusCode != http.StatusRequestEntityTooLarge {
 		t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusRequestEntityTooLarge)
+	}
+}
+
+// failingStore proves the seam: httpapi depends on its own interface, not on asset.MemStore.
+type failingStore struct{}
+
+func (failingStore) Create(context.Context, string, []byte) (asset.Asset, error) {
+	return asset.Asset{}, errors.New("create failed")
+}
+
+func (failingStore) Get(context.Context, string) (asset.Asset, error) {
+	return asset.Asset{}, errors.New("get failed")
+}
+
+func (failingStore) List(context.Context) ([]asset.Asset, error) {
+	return nil, errors.New("list failed")
+}
+
+func TestStoreFailureMapsTo500(t *testing.T) {
+	log := zap.NewNop()
+	srv := httptest.NewServer(httpapi.New(failingStore{}, log, nil))
+	t.Cleanup(srv.Close)
+
+	resp, err := http.Get(srv.URL + "/api/assets")
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	t.Cleanup(func() { _ = resp.Body.Close() })
+
+	if resp.StatusCode != http.StatusInternalServerError {
+		t.Fatalf("status = %d, want 500", resp.StatusCode)
 	}
 }
