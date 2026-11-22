@@ -28,3 +28,7 @@ jobs:
           ./scripts/scaffold.sh /tmp/probe-go --go-only 2>&1 | tee /tmp/go.log
           if grep -qi 'traceback\|no such file' /tmp/go.log; then exit 1; fi
           cd /tmp/probe-go && ./scripts/preflight.sh --ci
+
+      # the README claims the demo can be deleted without touching scripts/; prove it every push
+      - name: recipe in the README still holds
+        run: ./scripts/recipe-check.sh "$RUNNER_TEMP/recipe" 2>&1 | tee /tmp/recipe.log

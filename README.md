@@ -104,8 +104,9 @@ func New(log *zap.Logger, ui http.Handler) http.Handler {
 
 `web/src/router.tsx`: remove the two route imports and their entries in `addChildren`.
 
-`web/src/routes/root.tsx`: remove the header's `<Link to='/'>` — with no child routes it no longer
-type-checks.
+`web/src/routes/root.tsx`: replace the header's `<Link to='/'>Assets</Link>` with a `<span>`, and
+drop `Link` from the `@tanstack/react-router` import. With no child routes the link no longer
+type-checks, and `noUnusedLocals` fails the build on the leftover import.
 
 The smoke step survives all of this because it asserts `/healthz`, the SPA fallback and a JSON 404
 under `/api/`; it names no resource. `newrepo` always generates the demo, because it copies this
