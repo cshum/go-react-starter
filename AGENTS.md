@@ -1,6 +1,6 @@
 # Working in this repo
 
-Go API + React front end for a live coding session. Both are deliberately tiny: read every file
+Go API + React front end for a small service. Both are deliberately tiny: read every file
 before adding to it, and prefer extending what is here over introducing a pattern.
 
 ## Commands
@@ -23,13 +23,13 @@ Language rules live next to the code: `server/AGENTS.md` and `web/AGENTS.md`.
 ## Boundaries
 
 - **Always**: run `mise run test` before saying a change is done; run `scripts/preflight.sh` before
-  declaring the exercise finished; quote the command output rather than summarising it.
+  declaring a change finished; quote the command output rather than summarising it.
 - **Ask first**: adding any dependency, changing the JSON shape of an endpoint, deleting the
   `assets` demo resource.
 - **Never**: run `npm ci` or delete `node_modules` (offline install fails), commit secrets, or edit
   the versions in `.mise.toml`.
 
-## Working with an agent in the room
+## Working with an agent
 
 - Propose the interface (types, signatures, error cases) before writing bodies, and wait.
 - Generate boilerplate; write the interesting function yourself and be able to defend every line

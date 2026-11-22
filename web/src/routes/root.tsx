@@ -11,7 +11,7 @@ function RootLayout() {
         <Link to='/' className='text-lg font-semibold text-slate-900'>
           Assets
         </Link>
-        <span className='text-xs text-slate-400'>interview-kit</span>
+        <span className='text-xs text-slate-400'>starter</span>
       </header>
       <main>
         <Outlet />

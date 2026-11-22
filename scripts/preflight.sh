@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Proves the interview kit builds and tests with no network.
+# Proves the repo builds, tests and lints with no network.
 # Run: scripts/preflight.sh          (full)
 #      scripts/preflight.sh --fast   (skip the web build, keep tests)
 set -uo pipefail
@@ -153,6 +153,6 @@ if [ $fail -eq 0 ]; then
     printf '\033[32mPASS\033[0m  ready. Next: make run (api on :8080)\n'
   fi
 else
-  printf '\033[31mFAIL\033[0m  fix the lines above before the interview — do not debug this live.\n'
+  printf '\033[31mFAIL\033[0m  fix the lines above before going further.\n'
 fi
 exit $fail

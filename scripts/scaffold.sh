@@ -91,8 +91,8 @@ PY
 }
 [ "$GO_ONLY" -eq 1 ] && trim_for_go_only
 
-# name the exercise in the generated guidance, so a blank session knows what it is looking at
-perl -0pi -e "s|# Working in this repo\n|# Working in this repo\n\nExercise: \`$NAME\`. Keep it small; extend what is here.\n|" "$TARGET/AGENTS.md"
+# name the project in the generated guidance, so a blank session knows what it is looking at
+perl -0pi -e "s|# Working in this repo\n|# Working in this repo\n\nProject: \`$NAME\`. Keep it small; extend what is here.\n|" "$TARGET/AGENTS.md"
 perl -pi -e "if ($. == 1) { s|^# .*|# $NAME| }" "$TARGET/README.md"
 
 # module path and package name follow the directory, so imports read naturally in the round
@@ -117,7 +117,7 @@ fi
 git init -q
 git add -A
 git -c user.name="${GIT_AUTHOR_NAME:-scaffold}" -c user.email="${GIT_AUTHOR_EMAIL:-scaffold@localhost}" \
-  commit -qm "scaffold: $NAME from interview kit" || { echo "git commit failed" >&2; exit 1; }
+  commit -qm "scaffold: $NAME from go-react-starter" || { echo "git commit failed" >&2; exit 1; }
 
 printf '\nready: %s\n' "$TARGET"
 if [ "$GO_ONLY" -eq 0 ]; then
