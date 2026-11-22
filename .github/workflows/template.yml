@@ -10,6 +10,8 @@ permissions:
 
 jobs:
   scaffold:
+    # this workflow belongs to the template repo; copies made from it must not run it
+    if: github.repository == 'cshum/go-react-starter'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
