@@ -14,18 +14,17 @@ import (
 	"syscall"
 	"time"
 
+	server "starter"
 	"starter/internal/asset"
 	"starter/internal/config"
 	"starter/internal/httpapi"
 )
 
-const version = "0.1.0"
+// version is set at build time: -ldflags "-X main.version=…".
+var version = "dev"
 
-// defaultAddr lets PORT alone work, so a shell export is enough to move the port.
+// defaultAddr keeps a bare port working: APP_ADDR=9090 is normalised to ":9090".
 func defaultAddr() string {
-	if p := os.Getenv("PORT"); p != "" {
-		return config.ListenAddr(p)
-	}
 	return ":8080"
 }
 
@@ -65,15 +64,15 @@ commands:
 
 func serve(args []string) error {
 	fs := flag.NewFlagSet("serve", flag.ExitOnError)
-	addr := fs.String("addr", defaultAddr(), "listen address (env: ASSET_ADDR, or PORT)")
-	if err := config.Parse(fs, args, "ASSET"); err != nil {
+	addr := fs.String("addr", defaultAddr(), "listen address (env: APP_ADDR)")
+	if err := config.Parse(fs, args, "APP"); err != nil {
 		return err
 	}
 
 	log := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
 	srv := &http.Server{
 		Addr:              config.ListenAddr(*addr),
-		Handler:           httpapi.New(asset.NewMemStore(), log),
+		Handler:           httpapi.New(asset.NewMemStore(), log, server.UI()),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       30 * time.Second,
 		WriteTimeout:      30 * time.Second,

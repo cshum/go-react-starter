@@ -15,7 +15,7 @@ export default tseslint.config(
     ],
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 'latest',
       globals: globals.browser,
     },
     plugins: {
@@ -37,7 +37,7 @@ export default tseslint.config(
     rules: { 'react-refresh/only-export-components': 'off' },
   },
   {
-    // The data path is loaders only; an effect here is the mistake this repo exists to prevent.
+    // The data path is loaders only; an effect here is the mistake this starter prevents.
     files: ['src/routes/**/*.{ts,tsx}', 'src/api/**/*.ts', 'src/loaders/**/*.ts'],
     rules: {
       'no-restricted-imports': [
@@ -61,5 +61,10 @@ export default tseslint.config(
         },
       ],
     },
+  },
+  {
+    // Last, so it wins: tests legitimately import shared fixtures from outside src.
+    files: ['**/*.test.{ts,tsx}'],
+    rules: { 'no-restricted-imports': 'off', 'no-restricted-syntax': 'off' },
   },
 )

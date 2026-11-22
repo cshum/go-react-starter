@@ -8,6 +8,11 @@ export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
+  build: {
+    // the Go binary embeds this directory
+    outDir: '../server/dist',
+    emptyOutDir: true,
+  },
   server: {
     proxy: {
       '/api': `http://localhost:${process.env.PORT ?? 8080}`,

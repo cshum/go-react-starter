@@ -20,7 +20,7 @@ import (
 func newServer(t *testing.T) string {
 	t.Helper()
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
-	srv := httptest.NewServer(httpapi.New(asset.NewMemStore(), log))
+	srv := httptest.NewServer(httpapi.New(asset.NewMemStore(), log, nil))
 	t.Cleanup(srv.Close)
 	return srv.URL
 }

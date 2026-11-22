@@ -64,6 +64,8 @@ fi
 clone_tree "$KIT/scripts" "$TARGET/scripts"
 cp "$KIT/README.md" "$TARGET/README.md"
 cp "$KIT/LICENSE" "$KIT/.editorconfig" "$KIT/.gitignore" "$TARGET/"
+cp "$KIT/Dockerfile" "$KIT/.dockerignore" "$KIT/.env.example" "$KIT/renovate.json" "$TARGET/"
+clone_tree "$KIT/testdata" "$TARGET/testdata"
 cp "$KIT/AGENTS.md" "$TARGET/AGENTS.md"
 cp "$KIT/.mise.toml" "$TARGET/.mise.toml"
 mkdir -p "$TARGET/.vscode" && cp "$KIT/.vscode/settings.json" "$TARGET/.vscode/settings.json"
@@ -74,17 +76,21 @@ trim_for_go_only() {
 import sys
 agents, rules = sys.argv[1], sys.argv[2]
 s = open(agents).read()
-s = s.replace("cd server && make test        # or: go test ./...", "make test                     # or: go test ./...")
-s = s.replace("mise run test                 # both halves, offline",
-              "mise run test                 # go tests, offline")
-s = s.replace("cd web && npx vitest run      # or: npm run dev / npm run build\n", "")
-s = s.replace("cd server && make lint        # golangci-lint, standard set",
-              "make lint                     # golangci-lint, standard set")
-s = s.replace("cd web && npm run lint        # eslint + prettier (formatting is a lint error here)\n", "")
-s = s.replace("scripts/dev.sh                # api :8080 + web :5173 together",
-              "make run                      # api on :8080")
-s = s.replace("Language rules live next to the code: `server/AGENTS.md` and `web/AGENTS.md`.",
-              open(rules).read().split("\n", 1)[1].strip())
+
+def swap(old, new):
+    global s
+    if old not in s:
+        sys.exit("scaffold: AGENTS.md no longer contains: " + old.strip()[:60])
+    s = s.replace(old, new)
+
+swap("cd server && make test        # or: go test ./...", "make test                     # or: go test ./...")
+swap("mise run test                 # both halves, offline", "mise run test                 # go tests, offline")
+swap("cd web && npx vitest run      # or: npm run dev / npm run build\n", "")
+swap("cd server && make lint        # golangci-lint, standard set", "make lint                     # golangci-lint, standard set")
+swap("cd web && npm run lint        # eslint + prettier (formatting is a lint error here)\n", "")
+swap("scripts/dev.sh                # api :8080 + web :5173 together", "make run                      # api on :8080")
+swap("Language rules live next to the code: `server/AGENTS.md` and `web/AGENTS.md`.",
+     open(rules).read().split("\n", 1)[1].strip())
 open(agents, "w").write(s)
 PY
   rm -f "$TARGET/scripts/dev.sh" "$TARGET/.go-rules.md"
@@ -97,8 +103,8 @@ perl -pi -e "if ($. == 1) { s|^# .*|# $NAME| }" "$TARGET/README.md"
 
 # module path and package name follow the directory, so imports read naturally in the round
 perl -pi -e "s|^module starter|module $NAME|" "$GO_PATH/go.mod"
-grep -rl '"starter/' "$GO_PATH" 2>/dev/null | while read -r f; do
-  perl -pi -e "s|\"starter/|\"$NAME/|g" "$f"
+grep -rl '"starter' "$GO_PATH" 2>/dev/null | while read -r f; do
+  perl -pi -e "s|\"starter/|\"$NAME/|g; s|\"starter\"|\"$NAME\"|g" "$f"
 done
 if [ "$GO_ONLY" -eq 0 ] && [ -f "$TARGET/web/package.json" ]; then
   perl -pi -e "s|\"name\": \"[^\"]+\"|\"name\": \"$NAME-web\"|" "$TARGET/web/package.json"

@@ -10,6 +10,7 @@ reversible in an afternoon.
 mise install                  # go, node, golangci-lint from .mise.toml
 npm --prefix web install      # only when web/node_modules is missing
 scripts/dev.sh                # api on :8080, web on :5173   (or: make dev)
+make build                    # one binary in server/bin/app with the UI embedded
 
 make                          # lists the targets
 scripts/preflight.sh          # the gate: vet, tests (-race), lint, build, conventions, ports
@@ -36,7 +37,7 @@ Each row is a choice, the reason, and what it costs.
 | Choice | Why | Cost |
 |---|---|---|
 | **Go stdlib `net/http`**, no router library | Go 1.22 method+path patterns (`POST /api/assets`, `GET /api/assets/{id}`) cover what this needs; one less dependency to explain and vendor | No middleware chain or param binding sugar — you write it |
-| **`ff/v3` for flags and env**, vendored | Same pattern as my other Go services: flag beats env beats default, one declaration per option | One dependency, 60 KB vendored; a `go.sum` exists |
+| **`ff/v3` for flags and env**, vendored | One declaration per option; flag beats env beats default | One dependency, 60 KB vendored; a `go.sum` exists |
 | **Domain logic behind an interface** | `internal/asset` is plain Go, so it tests without a server or a database | You write the storage layer when `MemStore` stops being enough |
 | **In-memory store by default** | Swapping in Postgres means one new implementation, not a handler rewrite | No persistence, no migrations — deliberate for a starting point |
 | **SHA-256 content addressing** | Re-uploading identical bytes returns the stored asset, so `POST` is idempotent on content with no extra key | Storing one file under two names is impossible by design |
@@ -53,7 +54,9 @@ Each row is a choice, the reason, and what it costs.
 | **`vendor/` committed** | `go test` runs with `GOPROXY=off` and an empty module cache: no install step, in CI or on a plane | Vendor diffs show up in pull requests |
 | **One gate script, used by CI** | A green local run and a green build mean the same thing; there is no second definition of "passing" | The gate has to stay fast enough to run on every change |
 | **No codegen** (no gqlgen, no OpenAPI) | At this size, hand-written types are faster to read and change than a generator pair | Add the generator when the surface justifies it |
-| **No Docker, no compose** | Two processes and one script; a container layer would have nothing behind it yet | Containerise when there is a second service or a deploy target |
+| **One binary serves the API and the UI** | `web/dist` is embedded with `go:embed`, so a deploy is a single file; `make build` builds the UI first | Rebuild the binary when only the UI changes |
+| **Dockerfile, but no compose** | Every starter in this class ships a deploy contract: multi-stage build, distroless runtime, non-root | You maintain an image you may not deploy |
+| **`renovate.json`** | Actions tags, npm carets and the TypeScript pin all drift; a bot keeps them current | One more config file, and PRs to review |
 
 ## What this deliberately leaves out
 

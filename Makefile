@@ -22,9 +22,8 @@ lint: ## golangci-lint + eslint/prettier
 	@cd server && $(MAKE) lint
 	@cd web && npm run lint --silent
 
-build: ## both halves
+build: ## one binary with the UI embedded
 	@cd server && $(MAKE) build
-	@cd web && npm run build
 
 fmt: ## gofmt + prettier --write
 	@cd server && $(MAKE) fmt

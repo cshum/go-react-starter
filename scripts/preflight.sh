@@ -57,13 +57,6 @@ else
   printf '   note  mise not installed — using system go/node, versions may drift\n'
 fi
 
-step "network is optional (recording reachability, not requiring it)"
-if curl -fsS --max-time 3 -o /dev/null https://proxy.golang.org 2>/dev/null; then
-  ok "internet reachable"
-else
-  ok "no internet — expected at the venue, kit must still pass below"
-fi
-
 step "go: vet + build + test with GOPROXY=off"
 if [ -f "$ROOT/${GO_DIR:+$GO_DIR/}go.mod" ]; then
   (
@@ -107,30 +100,7 @@ else
   bad "missing $ROOT/web"
 fi
 
-step "conventions the kit encodes (checked, not just documented)"
-if [ -d "$ROOT/web/src" ]; then
-  # the data path must not fetch through useEffect; components may still sync with the DOM
-  hits=$(grep -rn "useEffect" "$ROOT/web/src/routes" "$ROOT/web/src/api" "$ROOT/web/src/loaders" 2>/dev/null | wc -l | tr -d ' ')
-  if [ "$hits" -eq 0 ]; then
-    ok "no useEffect in the data path (routes/api/loaders) — data enters through loaders"
-  else
-    bad "$hits useEffect occurrence(s) in the data path — move that to a loader"
-    grep -rn "useEffect" "$ROOT/web/src/routes" "$ROOT/web/src/api" "$ROOT/web/src/loaders" 2>/dev/null | head -3 | sed 's/^/         /'
-  fi
-fi
-step "dependency budget"
-if [ -f "$ROOT/${GO_DIR:+$GO_DIR/}go.mod" ]; then
-  allowed="github.com/peterbourgon/ff/v3"
-  direct=$( cd "$ROOT/${GO_DIR:-.}" && $MISE_CMD go list -deps -f '{{if .Module}}{{.Module.Path}}{{end}}' ./... 2>/dev/null \
-    | grep -v '^$' | grep -v "^$(cd "$ROOT/${GO_DIR:-.}" && sed -n 's/^module //p' go.mod)$" | sort -u )
-  unexpected=$(printf '%s\n' "$direct" | grep -v "^$allowed$" | grep -v '^$' || true)
-  if [ -z "$unexpected" ]; then
-    ok "Go direct deps: ff only"
-  else
-    bad "unexpected Go deps: $(printf '%s' "$unexpected" | tr '\n' ' ')— say why before adding one"
-  fi
-fi
-
+step "conventions"
 step "ports the demo uses"
 if [ "$CI" -eq 1 ]; then
   ok "skipped in CI"

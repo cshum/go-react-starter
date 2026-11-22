@@ -9,7 +9,7 @@ import (
 )
 
 // New returns a ready handler for store: routes, logging, panic recovery.
-func New(store asset.Store, log *slog.Logger) http.Handler {
+func New(store asset.Store, log *slog.Logger, ui http.Handler) http.Handler {
 	a := &api{store: store, log: log}
 
 	mux := http.NewServeMux()
@@ -17,7 +17,12 @@ func New(store asset.Store, log *slog.Logger) http.Handler {
 	mux.HandleFunc("GET /api/assets", a.list)
 	mux.HandleFunc("GET /api/assets/{id}", a.get)
 	mux.HandleFunc("GET /healthz", a.health)
-	mux.HandleFunc("/", a.notFound)
+	mux.HandleFunc("/api/", a.notFound)
+	if ui != nil {
+		mux.Handle("/", ui)
+	} else {
+		mux.HandleFunc("/", a.notFound)
+	}
 
 	return withLogging(log, withRecover(log, mux))
 }
